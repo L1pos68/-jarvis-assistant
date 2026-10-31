@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050d1b">
+<title>JARVIS – Personal Interface</title>
+<style>
+:root{--cyan:#59dfff;--blue:#168dff;--muted:#8aa9c7;--bg:#050d1b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 28%,#102e50 0,#071629 38%,#030811 78%);color:#e8f7ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+main{max-width:560px;margin:auto;padding:env(safe-area-inset-top) 18px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 2px 8px}
+.brand{letter-spacing:.28em;font-size:13px;color:var(--cyan);font-weight:700}
+.status{font-size:11px;color:#8fb6d4;letter-spacing:.12em}
+h1{text-align:center;font-size:clamp(26px,7vw,38px);font-weight:300;letter-spacing:.16em;margin:28px 0 4px}
+.subtitle{text-align:center;color:#8fb6d4;font-size:12px;letter-spacing:.16em}
+.reactor-wrap{display:grid;place-items:center;margin:30px auto 24px;position:relative;width:min(74vw,300px);aspect-ratio:1}
+.ring{position:absolute;inset:5%;border-radius:50%;border:1px solid #2aa9ff66;box-shadow:0 0 25px #168dff33,inset 0 0 24px #168dff22;animation:spin 24s linear infinite}
+.ring:before,.ring:after{content:"";position:absolute;border-radius:50%;border:1px dashed #5bdfff77;inset:10%;transform:rotate(35deg)}
+.ring:after{inset:21%;border-style:solid;border-color:#168dff99;transform:rotate(-25deg)}
+.core{width:43%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#e9fdff 0,#70dcff 8%,#168dff 27%,#073a70 58%,#06162a 72%);box-shadow:0 0 18px #5bdfff,0 0 55px #168dffbb,0 0 100px #168dff55;animation:pulse 3s ease-in-out infinite}
+.tick{position:absolute;inset:0;border-radius:50%;border:1px solid transparent;border-top-color:#72e6ff;border-bottom-color:#238eff;transform:rotate(15deg)}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{transform:scale(1.08);filter:brightness(1.25)}}
+.state{text-align:center;color:var(--cyan);font-size:12px;letter-spacing:.16em;min-height:18px;margin-bottom:20px}
+.panel{border:1px solid #3ba9e955;background:linear-gradient(145deg,#0b2038dd,#061222ee);border-radius:18px;padding:14px;box-shadow:0 10px 35px #0005}
+.log{height:190px;overflow:auto;padding:2px 2px 10px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:90%;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.45;white-space:pre-wrap}
+.bot{align-self:flex-start;background:#0e3151;border:1px solid #277db477}
+.user{align-self:flex-end;background:#103e64;border:1px solid #46c8ff66}
+.controls{display:flex;gap:8px;margin-top:10px}
+input{min-width:0;flex:1;border-radius:12px;border:1px solid #327ca7;background:#04101e;color:#e8f7ff;padding:13px;font-size:16px;outline:none}
+button{border:1px solid #42c8ff88;background:linear-gradient(135deg,#12568b,#092a4b);color:#eafaff;border-radius:12px;padding:12px 14px;font-size:14px}
+button:active{filter:brightness(1.35)}
+.mic{width:100%;margin-top:10px;padding:14px;border-radius:14px;font-weight:600;letter-spacing:.08em}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tools button{font-size:12px;padding:12px 5px}
+.note{color:#86a9c6;font-size:11px;line-height:1.5;margin:14px 4px 0;text-align:center}
+footer{text-align:center;color:#547895;font-size:10px;letter-spacing:.12em;margin:20px 0 8px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand">J.A.R.V.I.S.</div><div class="status" id="clock">SYSTEM ONLINE</div></header>
+<h1>Guten Abend.</h1><div class="subtitle">PERSONAL ASSISTANT INTERFACE</div>
+<div class="reactor-wrap" aria-label="Blauer holografischer Reaktorkern"><div class="ring"></div><div class="tick"></div><div class="core"></div></div>
+<div class="state" id="state">BEREIT · SPRACHE & TEXT</div>
+<section class="panel" aria-label="Chat">
+<div class="log" id="log" aria-live="polite"><div class="msg bot">JARVIS online. Wie kann ich behilflich sein?</div></div>
+<div class="controls"><input id="prompt" type="text" placeholder="Nachricht an JARVIS…" autocomplete="off"><button id="send">Senden</button></div>
+<button class="mic" id="speak">🔊 Antwort vorlesen</button>
+<div class="tools">
+<button id="time">◷ Uhrzeit</button><button id="date">▦ Datum</button><button id="clear">⌫ Verlauf leeren</button>
+</div>
+</section>
+<p class="note">Sprach-Eingabe: Tippe ins Textfeld und nutze das Mikrofon auf der iPhone-Tastatur (Diktierfunktion). Die Vorlesefunktion nutzt verfügbare deutsche iOS-Stimmen. Diese Offline-Demo ist noch nicht mit einem KI-Dienst verbunden.</p>
+<footer>JARVIS INTERFACE · VERSION 1.0 · LOCAL DEMO</footer>
+</main>
+<script>
+const log=document.getElementById('log'), input=document.getElementById('prompt'), state=document.getElementById('state');
+let lastReply='JARVIS online. Wie kann ich behilflich sein?';
+function add(text,who){const el=document.createElement('div');el.className='msg '+who;el.textContent=text;log.appendChild(el);log.scrollTop=log.scrollHeight}
+function reply(text){lastReply=text;add(text,'bot');state.textContent='ANTWORT BEREIT'}
+function send(){const text=input.value.trim();if(!text)return;add(text,'user');input.value='';let answer;
+const q=text.toLowerCase();
+if(q.includes('hallo')||q.includes('guten')) answer='Guten Tag. JARVIS ist bereit. Was kann ich für Sie tun?';
+else if(q.includes('uhrzeit')||q.includes('wie spät')) answer='Es ist '+new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date())+'.';
+else if(q.includes('datum')||q.includes('welcher tag')) answer='Heute ist '+new Intl.DateTimeFormat('de-DE',{dateStyle:'full'}).format(new Date())+'.';
+else if(q.includes('wer bist')) answer='Ich bin JARVIS – Ihre persönliche Assistenten-Oberfläche. Mein KI-Gehirn wird in einem späteren Schritt angebunden.';
+else answer='Anfrage empfangen. Diese erste Version ist eine lokale Oberfläche und noch nicht mit einer KI verbunden. Für intelligente Antworten verbinden wir im nächsten Schritt einen KI-Dienst.';
+reply(answer)}
+document.getElementById('send').addEventListener('click',send);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+document.getElementById('speak').addEventListener('click',()=>{if(!('speechSynthesis'in window)){state.textContent='SPRACHAUSGABE NICHT VERFÜGBAR';return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(lastReply);u.lang='de-DE';u.rate=.88;u.pitch=.82;const voices=speechSynthesis.getVoices();const v=voices.find(x=>x.lang.toLowerCase().startsWith('de')&&/male|markus|stefan|hans/i.test(x.name))||voices.find(x=>x.lang.toLowerCase().startsWith('de'));if(v)u.voice=v;u.onstart=()=>state.textContent='JARVIS SPRICHT';u.onend=()=>state.textContent='BEREIT · SPRACHE & TEXT';speechSynthesis.speak(u)});
+document.getElementById('time').addEventListener('click',()=>reply('Es ist '+new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date())+'.'));
+document.getElementById('date').addEventListener('click',()=>reply('Heute ist '+new Intl.DateTimeFormat('de-DE',{dateStyle:'full'}).format(new Date())+'.'));
+document.getElementById('clear').addEventListener('click',()=>{log.innerHTML='';reply('Verlauf geleert. JARVIS ist bereit.')});
+function clock(){document.getElementById('clock').textContent=new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit'}).format(new Date())+' · ONLINE'}clock();setInterval(clock,30000);
+</script>
+</body>
+</html>
